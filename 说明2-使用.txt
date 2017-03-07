@@ -1,0 +1,286 @@
+
+http://blog.csdn.net/sup_heaven/article/details/35295851
+
+Java学习整理系列之Java枚举类型的使用 .
+
+枚举类型概念
+
+
+
+package com.lxq.enumm;
+
+public class EnumDemoOne
+{
+	private enum InnerEnum
+	{
+		RED, GREEN, YELLOW
+	};
+
+	public static void main(String[] args)
+	{
+		System.out.println(InnerEnum.RED);
+		System.out.println(InnerEnum.GREEN);
+		System.out.println(InnerEnum.YELLOW);
+	}
+}
+
+运行上面的代码，将编辑产生EnumDemoOne.class和EnumDemoOne$InnerEnum.class。 
+
+由此说明定义枚举类型其实就是在定义一个类，只不过很多细节由编译器帮你补齐了，所以，某种程度上enum关键词的作用就像是class或interface.当使用enum定义枚举类型时，实际上所定义出来的类型是继承自java.lang.Enum类。而每个被枚举的成员其实就是定义的枚举类型的一个实例，它们都被默认为final。无法改变常数名称所设定的值，它们也是public和static的成员，这与接口中的常量限制相同。可以通过类名称直接使用它们。
+
+Java枚举类型的案例一
+
+
+
+package com.lxq.enumm;
+
+public class EnumDemoTwo
+{
+	public enum ColorSelect
+	{
+		red, green, yellow, blue;
+	}
+	public static void main(String[] args) 
+	{
+		/*
+	    * 枚举类型是一种类型，用于定义变量，以限制变量的赋值 赋值时通过"枚举名.值"来取得相关枚举中的值
+	    */
+	    ColorSelect m = ColorSelect.blue;
+	    switch (m) 
+	    {
+	        /*注意:枚举重写了ToString(),说以枚举变量的值是不带前缀的
+	        * 所以为blue而非ColorSelect.blue
+	        */
+	    	case red:
+	            System.out.println("color is red");
+	            break;
+	        case green:
+	            System.out.println("color is green");
+	            break;
+	        case yellow:
+	            System.out.println("color is yellow");
+	            break;
+	        case blue:
+	            System.out.println("color is blue");
+	            break;
+	        }
+	        System.out.println("遍历ColorSelect中的值");
+	        /*通过values()获得枚举值的数组*/
+	        for (ColorSelect c : ColorSelect.values()) 
+	        {
+	            System.out.println(c);
+	        }
+	        System.out.println("枚举ColorSelect中的值有："+ColorSelect.values().length+"个");
+	        /*ordinal()返回枚举值在枚举中的索引位置，从0开始*/
+	        System.out.println(ColorSelect.red.ordinal());//0
+	        System.out.println(ColorSelect.green.ordinal());//1
+	        /*name()返回枚举值在枚举中的索引位置，从0开始*/
+	        System.out.println(ColorSelect.yellow.name());//yellow
+	        System.out.println(ColorSelect.blue.name());//blue
+	        /*枚举默认实现了java.lang.Comparable接口,-1之前，0位置相同，1之后*/ 
+	        System.out.println(ColorSelect.red.compareTo(ColorSelect.green));
+	        /*静态valueOf()方法可以让您将指定的字符串尝试转换为枚举类型*/ 
+	        ColorSelect red=ColorSelect.valueOf("red");
+	        System.out.println(red.getClass());
+	}
+}
+
+
+
+
+Java枚举类型的案例二
+
+
+上面案例一的枚举类型的返回值仅仅是该枚举变量的名称而已，我们当然也可以通过参数自己制定更加友好更加形象的枚举类型的返回值。 
+下面的代码简单来说，就箱单我们有一个类，类中有构造方法和变量clor，那么我们通过new Light("颜色");就可以新建一个类的实例，其实枚举就是这个意思，
+
+RED ("红色"), GREEN ("绿色"), YELLOW ("黄色");这三个就当然于实例化了三个对象。也就是Light RED=new Light("红色"); Light GREEN=new Light("绿色");
+Light YELLOW=new Light("黄色");只不过定义了枚举类型后，剩下的工作由java编译器帮我们完成了。
+
+
+
+package com.lxq.enumm;
+
+import java.util.EnumMap;
+import java.util.EnumSet;
+
+public class EnumDemoThree{
+	// 1. 定义枚举类型
+    public enum Light {
+       /*利用构造函数传参利用构造函数传参
+       * 通过括号赋值,而且必须有带参构造器和属性和方法，否则编译出错 
+       * 赋值必须是都赋值或都不赋值，不能一部分赋值一部分不赋值 
+       * 如果不赋值则不能写构造器，赋值编译也出错
+       * */  
+       RED ("红色"), GREEN ("绿色"), YELLOW ("黄色");
+ 
+       // 定义私有变量
+       private String clor ;
+ 
+       // 构造函数，枚举类型只能为私有
+       private Light(String clor) {
+           this.clor = clor;
+       }
+       
+       public String getClor(){
+   		   return this.clor;
+   	   }
+       
+       public void setClor(String clor){
+   		   this.clor=clor;
+   	   }
+       
+       @Override
+       public String toString() {
+           return this.clor;
+       }
+    }
+ 
+    /**
+      * @param args
+      */
+    public static void main(String[] args ) {
+       // 1. 遍历枚举类型
+       System.out.println( " 演示枚举类型的遍历 ......" );
+       testTraversalEnum ();
+       // 2. 演示 EnumMap 对象的使用
+       System. out .println( " 演示 EnmuMap 对象的使用和遍历 ....." );
+       testEnumMap ();
+       // 3. 演示 EnmuSet 的使用
+       System. out .println( " 演示 EnmuSet 对象的使用和遍历 ....." );
+       testEnumSet ();
+    }
+ 
+    /**
+      * 演示枚举类型的遍历
+      */
+    private static void testTraversalEnum() {
+       Light[] allLight = Light.values ();
+       for (Light aLight : allLight) {
+           System. out .println( " 当前灯 name ： " + aLight.name());
+           System. out .println( " 当前灯 ordinal ： " + aLight.ordinal());
+           System. out .println( " 当前灯： " + aLight);
+       }
+    }
+ 
+    /**
+      * 演示 EnumMap 的使用， EnumMap 跟 HashMap 的使用差不多，只不过 key 要是枚举类型
+      */
+    private static void testEnumMap() {
+       // 1. 演示定义 EnumMap 对象， EnumMap 对象的构造函数需要参数传入 , 默认是 key 的类的类型
+       EnumMap<Light, String> currEnumMap = new EnumMap<Light, String>(
+              Light. class );
+       currEnumMap.put(Light. RED , " 红灯 " );
+       currEnumMap.put(Light. GREEN , " 绿灯 " );
+       currEnumMap.put(Light. YELLOW , " 黄灯 " );
+ 
+       // 2. 遍历对象
+       for (Light aLight : Light.values ()) {
+           System. out .println( "[key=" + aLight.name() + ",value="
+                  + currEnumMap.get(aLight) + "]" );
+       }
+    }
+ 
+    /**
+      * 演示 EnumSet 如何使用， EnumSet 是一个抽象类，获取一个类型的枚举类型内容 <BR/>
+      * 可以使用 allOf 方法
+      */
+    private static void testEnumSet() {
+       EnumSet<Light> currEnumSet = EnumSet.allOf (Light. class );
+       for (Light aLightSetElement : currEnumSet) {
+           System. out .println( " 当前 EnumSet 中数据为： " + aLightSetElement);
+       }
+    }
+}
+
+
+
+Java枚举类型的案例三
+
+
+案例三在二的基础上增加了构造时的参数个数，使得这样的枚举有更广泛的用处。
+
+
+package com.lxq.enumm;
+
+public enum EnumConstant
+{
+	WEEK_00("", "请选择"),WEEK_01("01", "周一"), WEEK_02("02", "周二"), WEEK_03("03", "周三");
+	private String key;
+	private String value;
+	//自定义的构造函数，参数数量，名字随便自己取
+	//构造器默认也只能是private, 从而保证构造函数只能在内部使用 
+	private EnumConstant(String key, String value)
+	{
+		this.key = key;
+		this.value = value;
+	}
+
+	public String getKey()
+	{
+		return key;
+	}
+
+	public void setKey(String key)
+	{
+		this.key = key;
+	}
+
+	public String getValue()
+	{
+		return value;
+	}
+
+	public void setValue(String value)
+	{
+		this.value = value;
+	}
+	//重新toString方法，默认的toString方法返回的就是枚举变量的名字，和name()方法返回值一样
+	@Override
+	public String toString()
+	{
+		return this.key+":"+this.value;
+		
+	}
+
+}
+
+
+package com.lxq.enumm;
+
+public class EnumTest
+{
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args)
+	{
+		EnumConstant[] allday = EnumConstant.values();
+		System.out.println("-----------for begin------------------");
+		for (EnumConstant day : allday)
+		{
+			System.out.println("  name ： " + day.name());//枚举变量的名称
+			System.out.println("  ordinal ： " + day.ordinal());//枚举变量的序号
+			System.out.println("  ： " + day);//就是toString()的返回值
+			System.out.println("  key ： " + day.getKey());//取得第一个参数
+			System.out.println("  value ： " + day.getValue());//取得第二个参数
+		}
+		System.out.println("-----------for end------------------");
+		System.out.println(EnumConstant.WEEK_00);//就是toString()的返回值
+		System.out.println(EnumConstant.WEEK_01);//就是toString()的返回值
+		System.out.println(EnumConstant.WEEK_02);//就是toString()的返回值
+		System.out.println(EnumConstant.WEEK_03);//就是toString()的返回值		
+	}
+
+}
+
+
+PS：我常把Light叫做枚举类型，把其中的RED等叫做枚举变量或枚举值。
+
+本以为RED只是一个Light类的一个static final的实例而已。但后然发现不是这样的，所以文中相关表述不正确的已加中划线，
+
+正确的枚举类型原理见下一篇，Java学习整理系列之Java枚举类型的原理http://blog.csdn.net/sup_heaven/article/details/35559117
+
+
+

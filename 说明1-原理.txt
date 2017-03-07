@@ -1,0 +1,506 @@
+
+http://blog.csdn.net/sup_heaven/article/details/35559117
+
+Java学习整理系列之Java枚举类型的原理 .
+
+本以为RED只是一个Color类的一个static final的实例而已。但后然发现不是这样的，先看看下面的一种枚举类型使用的代码。
+
+package com.lxq.enumm;
+
+public enum Color
+{
+	RED{
+		public String getName(){
+			return "红色";
+		}
+	}
+	,GREEN{
+		public String getName(){
+			return "绿色";
+		}
+	}
+	,YELLOW{
+		public String getName(){
+			return "黄色";
+		}
+	};
+	public abstract String getName();
+}
+如果RED只是一个Color类的一个static final的实例，那么上面的代码就很让了费解了，为什么在枚举类型中可以有一个抽象方法，而每个枚举值可以对其重新实现？ 
+
+别急，看了我对这个类的测试代码你就明白，测试代码如下：
+
+
+import java.lang.reflect.Modifier;
+
+public class EnumDemoFour{
+	public static void main(String[] args){
+		//打印该枚举值的名称
+		System.out.println(Color.RED.getName());
+		//打印该枚举值的类
+		System.out.println(Color.RED.getClass());
+		//打印该枚举值的类的父类
+		System.out.println(Color.RED.getClass().getSuperclass());
+		//打印该枚举值的类的父类的父类
+		System.out.println(Color.RED.getClass().getSuperclass().getSuperclass());
+		//打印该枚举类型的修饰符
+		System.out.println(Modifier.toString(Color.class.getModifiers()));
+	}	
+	/*运行结果
+	红色
+	class com.lxq.enumm.Color$1
+	class com.lxq.enumm.Color
+	class java.lang.Enum
+	public abstract*/
+}
+该运行结果首先说明了RED和Color不是同一个类，而是前者是后者的一个子类；同时也说明了enum申明的其实是一个abstract的类，所以Color中可以有抽象方法。 
+
+那么，我们应该这么理解枚举类型的原理，首先enum Color继承了java.lang.Enum这个抽象类，但enum Color还是一个抽象类，所以它可以有抽象方法和非抽象方法。
+
+而enum Color中的枚举值变量RED事实上上Color的一个匿名子类，所以它可以实现Color中的抽象方法，这样，当我们调用System.out.println(Color.RED.getName());
+
+就是调用了匿名子类实现的方法。当然这些过程的很多事都有编译器等为我们做了，所以这里的代码很简单。
+
+要是你不明白上面打印的内容，我再提供一个普通的类给你看看，还是类似的效果哦。
+
+
+public abstract class TestInnerClass
+{
+	public abstract void dosomething();
+	public static void main(String[] args){
+		TestInnerClass tic=new TestInnerClass(){
+			@Override
+			public void dosomething()
+			{
+				System.out.println("我是匿名子类");
+			}	
+		};
+		tic.dosomething();
+		System.out.println(tic.getClass());
+	}
+	/*输出结果
+	我是匿名子类
+	class TestInnerClass$1
+	*/
+}
+最后再附上网上一个使用Java普通类模拟枚举的例子http://blog.csdn.net/xyang81/article/details/7185428，这个例子真的很好。 
+
+使用Java普通类模拟枚举
+
+
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 模拟星期中的表示的天，每个星期天都表示一个对象
+ * 1、类中的每一个枚举成员都是该类的一个实例对象
+ * 2、构造函数私有化
+ * 3、提供操作枚举成员的抽象方法和静态方法
+ */
+public abstract class WeekDate {
+	/**
+	 * 星期一
+	 */
+	public static final WeekDate MON = new WeekDate("MON",0) {//匿名子类
+		@Override
+		public WeekDate nextDay() {
+			return TUES;
+		}
+		@Override
+		public WeekDate preDay() {
+			return SUN;
+		}
+		@Override
+		public String toString() {
+			return "WeekDate.MON";
+		}
+	};	
+	
+	/**
+	 * 星期二
+	 */
+	public static final WeekDate TUES = new WeekDate("TUES",1) {
+		@Override
+		public WeekDate nextDay() {
+			return WEDNES;
+		}
+		@Override
+		public WeekDate preDay() {
+			return MON;
+		}
+		@Override
+		public String toString() {
+			return "WeekDate.TUES";
+		}
+	};
+	
+	/**
+	 * 星期三
+	 */
+	public static final WeekDate WEDNES = new WeekDate("WEDNES",2) {
+		@Override
+		public WeekDate nextDay() {
+			return THURS;
+		}
+		@Override
+		public WeekDate preDay() {
+			return TUES;
+		}
+		@Override
+		public String toString() {
+			return "WeekDate.WEDNES";
+		}	
+	};
+	
+	/**
+	 * 星期四
+	 */
+	public static final WeekDate THURS = new WeekDate("THURS",3) {
+		@Override
+		public WeekDate nextDay() {
+			return FRI;
+		}
+		@Override
+		public WeekDate preDay() {
+			return WEDNES;
+		}		
+		@Override
+		public String toString() {
+			return "WeekDate.THURS";
+		}		
+	};
+	
+	/**
+	 * 星期五
+	 */
+	public static final WeekDate FRI = new WeekDate("FRI",4){
+		@Override
+		public WeekDate nextDay() {
+			return SATUR;
+		}
+		@Override
+		public WeekDate preDay() {
+			return THURS;
+		}
+		@Override
+		public String toString() {
+			return "WeekDate.FRI";
+		}
+	};
+	
+	/**
+	 * 星期六
+	 */
+	public static final WeekDate SATUR = new WeekDate("SATUR",5){
+		@Override
+		public WeekDate nextDay() {
+			return SUN;
+		}
+		@Override
+		public WeekDate preDay() {
+			return FRI;
+		}		
+		@Override
+		public String toString() {
+			return "WeekDate.SATUR";
+		}		
+	};
+	
+	/**
+	 * 星期日
+	 */
+	public static final WeekDate SUN = new WeekDate("SUN",6){
+		@Override
+		public WeekDate nextDay() {
+			return MON;
+		}
+		@Override
+		public WeekDate preDay() {
+			return SATUR;
+		}
+		@Override
+		public String toString() {
+			return "WeekDate.SUN";
+		}
+	};
+	
+	private static Map<String, WeekDate> valueMap = new HashMap<String, WeekDate>();
+	
+	/**
+	 * 枚举名称
+	 */
+	private final String name;
+	
+	/**
+	 * 枚举成员的顺序
+	 */
+	private final int ordinal;
+	
+	private WeekDate(String name,int ordinal) {
+		this.name = name;
+		this.ordinal = ordinal;
+	}
+	
+	/**
+	 * 保存枚举成员
+	 */
+	private static WeekDate[] values = {
+		MON,TUES,WEDNES,THURS,FRI,SATUR,SUN
+	};
+	
+	//初始化
+	static {
+		valueMap.put("MON", values[0]);
+		valueMap.put("TUES", values[1]);
+		valueMap.put("WEDNES", values[2]);
+		valueMap.put("THURS", values[3]);
+		valueMap.put("FRI", values[4]);
+		valueMap.put("SATUR", values[5]);
+		valueMap.put("SUN", values[6]);
+	}
+	
+	/**
+	 * 下一天
+	 * @return
+	 */
+	public abstract WeekDate nextDay();
+	
+	/**
+	 * 前一天
+	 * @return
+	 */
+	public abstract WeekDate preDay();
+	
+	/**
+	 * 枚举中的所有成员
+	 * @return
+	 */
+	public static WeekDate[] values() {
+		return values;
+	}
+	
+	/**
+	 * 将一个字符串转换成一个枚举成员对象
+	 * @param name 枚举名称
+	 * @return 枚举对象
+	 */
+	public static WeekDate valueOf(String name) {
+		if (name.equalsIgnoreCase("MON")) {
+			return MON;
+		} else if (name.equalsIgnoreCase("TUES")) {
+			return TUES;
+		} else if (name.equalsIgnoreCase("WEDES")) {
+			return WEDNES;
+		} else if (name.equalsIgnoreCase("THURS")) {
+			return THURS;
+		} else if (name.equalsIgnoreCase("FRI")) {
+			return FRI;
+		} else if (name.equalsIgnoreCase("SATUR")) {
+			return SATUR;
+		} else if (name.equalsIgnoreCase("SUN")) {
+			return SUN;
+		} else {
+			throw new IllegalArgumentException("找不到" + name + "枚举类型！");
+		}
+	}
+	
+	/**
+	 * 优化字符串转枚举对象
+	 * @param name 枚举名称
+	 * @return 枚举对象
+	 */
+	public static WeekDate valueOf_2(String name) {
+		WeekDate value = valueMap.get(name.toUpperCase());
+		if (value == null) {
+			throw new IllegalArgumentException("找不到" + name + "枚举类型！");
+		}
+		return value;
+	}
+	public String getName() {
+		return name;
+	}
+	public int getOrdinal() {
+		return ordinal;
+	}
+}
+
+使用JDK5.0中提供的枚举特性
+
+
+
+/**
+ * 枚举的应用
+ * 存储每周中的天份
+ */
+public enum WeekDateEnum {
+
+	MON {
+		
+		@Override
+		public WeekDateEnum nextDay() {
+			return TUES;
+		}
+		
+		@Override
+		public WeekDateEnum preDay() {
+			return SUN;
+		}
+		
+	},  TUES {
+		
+		@Override
+		public WeekDateEnum nextDay() {
+			return WEDNES;
+		}
+		
+		@Override
+		public WeekDateEnum preDay() {
+			return MON;
+		}
+		
+	},  WEDNES {
+		
+		@Override
+		public WeekDateEnum nextDay() {
+			return THURS;
+		}
+		
+		@Override
+		public WeekDateEnum preDay() {
+			return TUES;
+		}
+		
+	},  THURS {
+		
+		@Override
+		public WeekDateEnum nextDay() {
+			return FRI;
+		}
+		
+		@Override
+		public WeekDateEnum preDay() {
+			return WEDNES;
+		}
+		
+	},  FRI {
+		
+		@Override
+		public WeekDateEnum nextDay() {
+			return SATUR;
+		}
+		
+		@Override
+		public WeekDateEnum preDay() {
+			return THURS;
+		}
+		
+	},  SATUR {
+		
+		@Override
+		public WeekDateEnum nextDay() {
+			return SATUR;
+		}
+		
+		@Override
+		public WeekDateEnum preDay() {
+			return FRI;
+		}
+		
+	},  SUN {
+		
+		@Override
+		public WeekDateEnum nextDay() {
+			return SATUR;
+		}
+		
+		@Override
+		public WeekDateEnum preDay() {
+			return MON;
+		}
+		
+	};
+
+	private WeekDateEnum() {}
+	
+	/**
+	 * 下一天
+	 * @return
+	 */
+	public abstract WeekDateEnum nextDay();
+	
+	/**
+	 * 前一天
+	 * @return
+	 */
+	public abstract WeekDateEnum preDay();
+	
+	/**
+	 * 枚举对象公共的toString方法，可以在case块中反馈自己想要返回的信息
+	 */
+	public String toString() {
+		switch (this) {
+		case MON:
+			return "WeekDateEnum.MON";
+		case TUES:
+			return "WeekDateEnum.TUES";
+		case WEDNES:
+			return "WeekDateEnum.WEDNES";
+		case THURS:
+			return "WeekDateEnum.THURS";
+		case FRI:
+			return "WeekDateEnum.FRI";
+		case SATUR:
+			return "WeekDateEnum.SATUR";
+		case SUN:
+			return "WeekDateEnum.SUN";
+		default:
+			return null;
+		}
+	}
+}
+
+枚举功能测试
+
+
+
+/**
+ * 枚举功能测试
+ */
+public class EnumTest {
+
+	public static void main(String[] args) {
+		
+		//使用普通JAVA类模拟枚举的应用
+		WeekDate weekDate = WeekDate.MON;		//获得一个枚举对象
+		//调用枚举中提供的方法
+		System.out.println(weekDate.nextDay());	
+		System.out.println(weekDate.preDay());
+		System.out.println(weekDate.getName());
+		//获得枚举成员所在枚举成员列表中的位置
+		System.out.println(weekDate.getOrdinal());
+		//调用某一个枚举成员的方法
+		System.out.println(WeekDate.values()[0].preDay());
+		System.out.println("---------------遍历枚举成员,普通JAVA类模拟--------------------------");
+		for (WeekDate weekDate2 : WeekDate.values()) {
+			System.out.println(weekDate2);
+		}
+		
+		System.out.println("\n=================================================================\n");
+		
+		//使用JDK中提供的枚举特性功能应用
+		WeekDateEnum weekDateEnum = WeekDateEnum.MON;	//获得一个枚举对象
+		System.out.println(WeekDate.values().length); 	//获得枚举成员数量
+		System.out.println(weekDateEnum.name());		//获得枚举的字符串名称
+		System.out.println(weekDateEnum.toString());	//打印枚举对象，已重写toString方法，默认打印枚举的名称
+		System.out.println(weekDateEnum.nextDay().ordinal());	//枚举成员列表中的位置
+		System.out.println(WeekDateEnum.valueOf("FRI").nextDay().ordinal());
+		System.out.println("---------------遍历枚举成员，使用JDK的枚举特性-------------------------");
+		for (WeekDateEnum enumDemo : WeekDateEnum.values()) {
+			System.out.println(enumDemo);
+		}
+		
+	} 
+	
+}
+
